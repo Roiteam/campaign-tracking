@@ -221,12 +221,15 @@
         // ========== INIT ==========
         async function init() {
             try {
+                // Prova a ottenere l'utente, ma continua anche senza
                 const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                    window.location.href = 'login.html';
-                    return;
+                if (user) {
+                    state.currentUser = user;
+                } else {
+                    // Modalità demo senza autenticazione
+                    state.currentUser = { id: 'demo-user', email: 'demo@example.com' };
+                    console.log('⚠️ Modalità demo - nessun utente autenticato');
                 }
-                state.currentUser = user;
 
                 await loadSocialCredentials();
                 await loadOffersGoals();
