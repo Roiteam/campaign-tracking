@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Affiliate Tracker</title>
+    <title>Track Campaign</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js per grafici -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -13,7 +13,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
             min-height: 100vh;
             color: white;
             padding: 20px;
@@ -51,7 +51,7 @@
         .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
         input, select { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 10px 12px; color: white; font-size: 14px; }
         input::placeholder { color: #9ca3af; }
-        select option { background: #1e1b4b; }
+        select option { background: #334155; }
         input:focus, select:focus { outline: none; border-color: #3b82f6; }
         .form-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 8px; }
@@ -2387,8 +2387,7 @@
             var html = '';
             
             html += '<div class="header-top">';
-            html += '<div><h1>📊 Affiliate Tracker</h1>';
-            html += '<p class="subtitle">Traffic Manager + Social Ads Performance</p></div>';
+            html += '<div><h1>Track Campaign</h1></div>';
             html += '<div class="btn-group">';
 
             // Dropdown per switch tra i miei dati e dati condivisi
@@ -2455,7 +2454,7 @@
             // Modal per condividere il tracker completo
             if (state.showShareTrackerModal) {
                 html += '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
-                html += '<div style="background: #1e1b4b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">';
+                html += '<div style="background: #334155; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">';
                 html += '<h2 style="margin-bottom: 20px;">👥 Condividi Affiliate Tracker</h2>';
                 html += '<p style="color: #9ca3af; font-size: 0.875rem; margin-bottom: 20px;">Condividi tutti i dati del tracker (campagne, offerte, statistiche, social credentials) con altri utenti.</p>';
 
@@ -3384,7 +3383,7 @@
             html += '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;" onclick="closeCreativePreview()">';
 
             // Contenuto modale (evita chiusura al click interno)
-            html += '<div onclick="event.stopPropagation()" style="background:linear-gradient(135deg, #1e1b4b 0%, #581c87 100%);border:2px solid rgba(168,85,247,0.5);border-radius:16px;padding:32px;max-width:800px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">';
+            html += '<div onclick="event.stopPropagation()" style="background:linear-gradient(135deg, #334155 0%, #475569 100%);border:2px solid rgba(168,85,247,0.5);border-radius:16px;padding:32px;max-width:800px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">';
 
             // Header
             html += '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:24px;">';
@@ -6480,7 +6479,7 @@
             // Modal nuovo foglio
             if (state.showNewSheetModal) {
                 html += '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
-                html += '<div style="background: #1e1b4b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
+                html += '<div style="background: #334155; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
                 html += '<h2 style="margin-bottom: 20px;">➕ Nuovo Foglio Spreadsheet</h2>';
 
                 html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
@@ -6508,7 +6507,7 @@
             // Modal aggiungi colonna
             if (state.showAddColumnModal) {
                 html += '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
-                html += '<div style="background: #1e1b4b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
+                html += '<div style="background: #334155; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
                 html += '<h2 style="margin-bottom: 20px;">➕ Nuova Colonna</h2>';
 
                 html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
@@ -6540,7 +6539,7 @@
             // Modal modifica colonna
             if (state.showEditColumnModal && state.editingColumn) {
                 html += '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
-                html += '<div style="background: #1e1b4b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
+                html += '<div style="background: #334155; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
                 html += '<h2 style="margin-bottom: 20px;">✏️ Modifica Colonna</h2>';
 
                 html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
@@ -6572,7 +6571,7 @@
             // Modal condivisione
             if (state.showShareModal && state.sharingSheet) {
                 html += '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">';
-                html += '<div style="background: #1e1b4b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
+                html += '<div style="background: #334155; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">';
                 html += '<h2 style="margin-bottom: 20px;">👥 Condividi Foglio</h2>';
 
                 html += '<div style="display: flex; flex-direction: column; gap: 16px;">';
