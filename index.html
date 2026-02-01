@@ -573,6 +573,115 @@
             return allCampaigns;
         }
 
+        // ========== NORMALIZE AD METRICS ==========
+        // Normalizza i dati dell'ad da varie possibili strutture API alla struttura standard
+        function normalizeAdMetrics(ad) {
+            if (!ad) return null;
+
+            // Log struttura originale per debug
+            if (ad.adId || ad.id) {
+                console.log('🔍 Normalizing ad:', ad.adId || ad.id, '| Structure:', Object.keys(ad));
+            }
+
+            // Estrai insights se presente (struttura API Meta standard)
+            var insights = null;
+            if (ad.insights && ad.insights.data && ad.insights.data.length > 0) {
+                insights = ad.insights.data[0];
+            } else if (ad.insights && !ad.insights.data) {
+                insights = ad.insights; // Insights diretti
+            } else if (ad.metrics) {
+                insights = ad.metrics; // Già in formato metrics
+            }
+
+            // Estrai metriche base
+            var impressions = 0;
+            var clicks = 0;
+            var spend = 0;
+            var reach = 0;
+            var conversions = 0;
+
+            if (insights) {
+                impressions = parseInt(insights.impressions || insights.impression || 0) || 0;
+                clicks = parseInt(insights.clicks || insights.click || 0) || 0;
+                spend = parseFloat(insights.spend || insights.amount_spent || 0) || 0;
+                reach = parseInt(insights.reach || 0) || 0;
+
+                // Estrai conversioni da actions
+                if (insights.actions && Array.isArray(insights.actions)) {
+                    var purchaseAction = insights.actions.find(function(a) {
+                        return a.action_type === 'purchase' || 
+                               a.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+                               a.action_type === 'omni_purchase';
+                    });
+                    if (purchaseAction) {
+                        conversions = parseInt(purchaseAction.value || 0) || 0;
+                    }
+                } else if (insights.conversions && Array.isArray(insights.conversions)) {
+                    var purchaseConversion = insights.conversions.find(function(c) {
+                        return c.action_type === 'purchase' || 
+                               c.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+                               c.action_type === 'omni_purchase';
+                    });
+                    if (purchaseConversion) {
+                        conversions = parseInt(purchaseConversion.value || 0) || 0;
+                    }
+                } else if (typeof insights.conversions === 'number') {
+                    conversions = parseInt(insights.conversions) || 0;
+                } else if (typeof insights.purchases === 'number') {
+                    conversions = parseInt(insights.purchases) || 0;
+                }
+            } else {
+                // Prova a estrarre direttamente dall'ad
+                impressions = parseInt(ad.impressions || 0) || 0;
+                clicks = parseInt(ad.clicks || 0) || 0;
+                spend = parseFloat(ad.spend || 0) || 0;
+                reach = parseInt(ad.reach || 0) || 0;
+                conversions = parseInt(ad.conversions || ad.purchases || 0) || 0;
+            }
+
+            // Calcola metriche derivate
+            var ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+            var cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
+            var costPerConversion = conversions > 0 ? spend / conversions : 0;
+
+            // Normalizza struttura ad
+            var campaignName = ad.campaignName || ad.campaign_name || (ad.campaign && ad.campaign.name) || 'N/A';
+            var campaignId = ad.campaignId || ad.campaign_id || (ad.campaign && ad.campaign.id) || '';
+            
+            var normalizedAd = {
+                adId: ad.adId || ad.id || ad.ad_id || '',
+                adName: ad.adName || ad.name || ad.ad_name || 'N/A',
+                campaignName: campaignName,
+                campaignId: campaignId,
+                adStatus: ad.adStatus || ad.status || ad.effective_status || 'UNKNOWN',
+                accountName: ad.accountName || '',
+                metrics: {
+                    impressions: impressions,
+                    clicks: clicks,
+                    ctr: ctr,
+                    spend: spend,
+                    reach: reach,
+                    conversions: conversions,
+                    costPerConversion: costPerConversion,
+                    cpm: cpm
+                },
+                creative: ad.creative || {
+                    imageUrl: ad.image_url || ad.imageUrl || ad.thumbnail_url || '',
+                    title: ad.title || ad.headline || '',
+                    body: ad.body || ad.description || ad.message || ''
+                }
+            };
+
+            // Log metriche normalizzate per debug
+            if (normalizedAd.adId && (impressions > 0 || clicks > 0 || spend > 0)) {
+                console.log('✅ Ad normalizzato:', normalizedAd.adName, '| Impressions:', impressions, '| Clicks:', clicks, '| Spend:', spend, '| Conversions:', conversions);
+            } else if (normalizedAd.adId) {
+                console.warn('⚠️ Ad senza metriche:', normalizedAd.adName, '| Ad ID:', normalizedAd.adId);
+            }
+
+            return normalizedAd;
+        }
+
         // ========== FETCH META ADS CREATIVE/INSERZIONI ==========
         async function fetchMetaAdsCreative(customDateFrom, customDateTo) {
             var allAds = [];
@@ -583,6 +692,7 @@
             var dateTo = customDateTo || state.dateTo;
 
             console.log('🎨 Fetching Meta Ads Creative...');
+            console.log('📅 Date range:', dateFrom, '→', dateTo);
             console.log('🔍 Selected Meta accounts:', state.selectedAccounts.meta.length);
 
             if (state.selectedAccounts.meta.length === 0) {
@@ -615,6 +725,13 @@
                         dateTo: dateTo
                     };
 
+                    console.log('📤 Request body:', {
+                        accountId: requestBody.accountId,
+                        accessToken: '****' + (account.accessToken ? account.accessToken.slice(-8) : 'MISSING'),
+                        dateFrom: requestBody.dateFrom,
+                        dateTo: requestBody.dateTo
+                    });
+
                     var response = await fetch('https://smwtkyvnmyetlektphyy.supabase.co/functions/v1/meta-ads-creative', {
                         method: 'POST',
                         headers: {
@@ -633,24 +750,71 @@
 
                     var data = await response.json();
 
-                    if (data.success && data.data) {
+                    // Log risposta completa per debug
+                    console.log('📥 Raw API response for ' + account.name + ':', {
+                        success: data.success,
+                        dataLength: data.data ? data.data.length : 0,
+                        hasError: !!data.error,
+                        error: data.error || null
+                    });
+
+                    if (data.error) {
+                        console.error('❌ meta-ads-creative API error:', data.error);
+                    }
+
+                    if (data.success && data.data && Array.isArray(data.data)) {
                         console.log('✅ Creative response for ' + account.name + ':', data.data.length, 'ads ricevute');
 
-                        // Aggiungi account name a ogni Ad
-                        data.data.forEach(function(ad) {
-                            ad.accountName = account.name;
-                            allAds.push(ad);
+                        // Log primo ad per vedere struttura
+                        if (data.data.length > 0) {
+                            console.log('📋 Sample ad structure (first ad):', {
+                                keys: Object.keys(data.data[0]),
+                                hasInsights: !!(data.data[0].insights),
+                                hasMetrics: !!(data.data[0].metrics),
+                                sample: JSON.stringify(data.data[0]).substring(0, 500)
+                            });
+                        }
+
+                        // Aggiungi account name e normalizza metriche per ogni Ad
+                        data.data.forEach(function(ad, index) {
+                            try {
+                                ad.accountName = account.name;
+                                var normalizedAd = normalizeAdMetrics(ad);
+                                if (normalizedAd) {
+                                    allAds.push(normalizedAd);
+                                } else {
+                                    console.warn('⚠️ Ad non normalizzato (index ' + index + '):', ad);
+                                }
+                            } catch (normalizeError) {
+                                console.error('❌ Errore normalizzazione ad (index ' + index + '):', normalizeError, ad);
+                            }
                         });
                     } else {
-                        console.warn('⚠️ Nessuna Ad ricevuta per ' + account.name);
+                        var reason = '';
+                        if (!data.success) reason = 'success=false';
+                        if (!data.data) reason += (reason ? ' + ' : '') + 'data vuoto';
+                        if (data.data && !Array.isArray(data.data)) reason += (reason ? ' + ' : '') + 'data non è array';
+                        console.warn('⚠️ Nessuna Ad ricevuta per ' + account.name, reason ? '(' + reason + ')' : '');
                     }
 
                 } catch (error) {
-                    console.error('Meta Ads Creative error for ' + account.name + ':', error);
+                    console.error('❌ Meta Ads Creative error for ' + account.name + ':', error);
+                    console.error('Stack:', error.stack);
                 }
             }
 
+            // Statistiche finali
+            var totalWithMetrics = allAds.filter(function(ad) {
+                return ad.metrics.impressions > 0 || ad.metrics.clicks > 0 || ad.metrics.spend > 0;
+            }).length;
+
             console.log('🎨 TOTALE - Ads caricate:', allAds.length);
+            console.log('📊 Ads con metriche:', totalWithMetrics, 'su', allAds.length);
+            
+            if (allAds.length > 0 && totalWithMetrics === 0) {
+                console.error('⚠️ ATTENZIONE: Tutte le ads hanno metriche a zero! Potrebbe essere un problema con l\'API o il range di date.');
+            }
+
             return allAds;
         }
 
